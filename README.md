@@ -101,6 +101,28 @@ public Task<Shape> RetrievePosition()
 }
 ```
 
+Setup the hosting of the Actor.
+- Navigate to the Host project of the Shape Actor. This is a default ASP.NET Core web app host.
+- Open `Startup.cs`
+- In the `ConfigureServices` method register the `ShapeActor` service
+  ``` cs
+  public void ConfigureServices(IServiceCollection services)
+  {
+      services.AddActors(options =>
+      {
+          options.Actors.RegisterActor<ShapeActor>();
+          options.ActorScanInterval = TimeSpan.FromMinutes(10);
+      });
+  }
+  ```
+- In the `Configure` method make sure the Actor endpoint mapping is configured
+  ``` cs
+  app.UseEndpoints(endpoints =>
+  {
+      endpoints.MapActorsHandlers();
+  });
+  ```
+
 Test the shape actor functionality
 - Run the actor service locally by the running the following command in the `.\Start\Component\Actor\Shape\Host` directory
   ``` sh
@@ -109,7 +131,7 @@ Test the shape actor functionality
   This command will start the actor host and the dapr sidecar in parallel.
 - Invoke the Shape Actor method `RetrievePosition` by running the following command. As actor id `clientA_shapeA` will be used
   ```sh
-  curl -X POST http://127.0.0.1:3500/v1.0/actors/ShapeActor/clientA_shapeA/method/RetrievePosition'
+  curl -X POST http://127.0.0.1:3500/v1.0/actors/ShapeActor/74f02f26a60c41bd8324fd34e3b2397c_f942074674d64e108101c7477a24d260/method/RetrievePosition
   ```
 - To stop the ShapeActor service host, press `Ctrl + C`
 
@@ -271,7 +293,7 @@ Implement a reminder timer.
   ```
 - add logic for calculating a new position
   ``` cs
-  private async Task CalculateNewPosition(object state)
+  private async Task CalculateNewPosition()
   {
       // get the current state
       var result = await StateManager.TryGetStateAsync<Shape>(ShapeStateName);
